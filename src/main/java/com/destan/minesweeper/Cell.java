@@ -1,38 +1,47 @@
 package com.destan.minesweeper;
 
 public class Cell {
-    private boolean bomb = false;
-    private boolean flag = false;
-    private boolean revealed = false;
-    private int x;
-    private int y;
+    private boolean isMine;
+    private boolean isFlagged;
+    private boolean isRevealed;
+    private int adjacentMines;
 
-    public Cell(int x, int y) {
-        this.x = x;
-        this.y = y;
+    public Cell() {
+        this.isMine = false;
+        this.isFlagged = false;
+        this.isRevealed = false;
+        this.adjacentMines = 0;
     }
 
-    public boolean getBomb() {
-        return this.bomb;
+    public boolean isMine() {
+        return isMine;
     }
 
-    public void setBomb(boolean bomb) {
-        this.bomb = bomb;
+    public void setMine(boolean isMine) {
+        this.isMine = isMine;
     }
 
-    public boolean getFlag() {
-        return this.flag;
+    public boolean isFlagged() {
+        return isFlagged;
     }
 
-    public void setFlag(boolean flag) {
-        this.flag = flag;
+    public void toggleFlag() {
+        this.isFlagged = !this.isFlagged;
     }
 
     public boolean isRevealed() {
-        return this.revealed;
+        return isRevealed;
     }
 
-    public void setRevealed(boolean revealed) {
-        this.revealed = revealed;
+    public void reveal() {
+        this.isRevealed = true;
+    }
+
+    public int getAdjacentMines() {
+        return adjacentMines;
+    }
+
+    public void setAdjacentMines(int adjacentMines) {
+        this.adjacentMines = adjacentMines;
     }
 }
