@@ -5,38 +5,106 @@ import java.util.Collections;
 import java.util.List;
 
 public class Board {
-    private int numBombs;
-    private int size;
     private Cell[][] grid;
-    public List<Cell> coordinates;
+    private int rows;
+    private int cols;
+    private List<int[]> allCoordinates;
 
-    public Board(int numBombs, int size) {
-        this.numBombs = numBombs;
-        this.size = size;
-        this.grid = new Cell[size][size];
-        this.coordinates = new ArrayList<>();
-    }
+    public Board(int rows, int cols) {
+        this.rows = rows;
+        this.cols = cols;
+        this.grid = new Cell[rows][cols];
+        this.allCoordinates = new ArrayList<>();
 
-    public void initialiseCoordinates() {
-        for (int i = 0; i < this.size; i++) {
-            for (int j = 0; j < this.size; j++) {
-                Cell cell = new Cell(i, j);
-                this.grid[i][j] = cell;
-                this.coordinates.add(cell);
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                grid[i][j] = new Cell();
+                allCoordinates.add(new int[]{i, j});
             }
         }
     }
 
-    public void deployBombs() {
-        int currentBomb = 0;
-        Collections.shuffle(coordinates);
-        while (currentBomb < this.numBombs) {
-            this.coordinates.get(currentBomb).setBomb(true);
-            currentBomb++;
+    public void initialiseBoard(int mines) {
+        placeMines(mines);
+        calculateAdjacentMines();
+    }
+
+    private void placeMines(int mines) {
+        Collections.shuffle(allCoordinates);
+
+        for (int i = 0; i < mines; i++) {
+            int[] coordinate = allCoordinates.get(i);
+            grid[coordinate[0]][coordinate[1]].setMine(true);
         }
     }
 
+    private void calculateAdjacentMines() {
+        int[] dx = {-1, -1, -1, 0, 0, 1, 1, 1};
+        int[] dy = {-1, 0, 1, -1, 1, -1, 0, 1};
+
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                if (!grid[i][j].isMine()) {
+                    int adjacentMines = 0;
+
+                    for (int k = 0; k < 8; k++) {
+                        int xOff = i + dx[k];
+                        int yOff = j + dy[k];
+
+                        if (isInBounds(xOff, yOff)) {
+                            if (grid[xOff][yOff].isMine()) {
+                                adjacentMines++;
+                            }
+                        }
+                    }
+
+                    grid[i][j].setAdjacentMines(adjacentMines);
+                }
+            }
+        }
+    }
+
+    private boolean isInBounds(int i, int j) {
+        return i >= 0 && i < rows && j >= 0 && j < cols;
+    }
+
     public Cell getCell(int x, int y) {
-        return this.grid[x][y];
+        if (isInBounds(x, y)) {
+            return grid[x][y];
+        }
+        return null;
+    }
+
+    public void uncoverCell(int row, int col) {
+        Cell cell = getCell(row, col);
+        if (cell != null && !cell.isRevealed() && !cell.isFlagged()) {
+            cell.reveal();
+            System.out.println("Revealing cell at (" + row + ", " + col + ")");
+            
+            if (cell.getAdjacentMines() == 0 && !cell.isMine()) {
+                uncoverAdjacentCells(row, col);
+            }
+        }
+    }
+
+    private void uncoverAdjacentCells(int row, int col) {
+        int[] dx = {-1, -1, -1, 0, 0, 1, 1, 1};
+        int[] dy = {-1, 0, 1, -1, 1, -1, 0, 1};
+
+        for (int i = 0; i < 8; i++) {
+            int newRow = row + dx[i];
+            int newCol = col + dy[i];
+            
+            if (isInBounds(newRow, newCol)) {
+                Cell adjacentCell = getCell(newRow, newCol);
+                if (adjacentCell != null && !adjacentCell.isRevealed() && !adjacentCell.isFlagged()) {
+                    adjacentCell.reveal();
+
+                    if (adjacentCell.getAdjacentMines() == 0 && !adjacentCell.isMine()) {
+                        uncoverAdjacentCells(newRow, newCol);
+                    }
+                }
+            }
+        }
     }
 }
